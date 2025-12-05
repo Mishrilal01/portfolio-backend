@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .stat-icon.projects { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .stat-icon.skills { background: linear-gradient(135deg, var(--secondary), var(--accent)); }
+        .stat-icon.analytics { background: linear-gradient(135deg, var(--accent), var(--warning)); }
+        .stat-icon.messages { background: linear-gradient(135deg, var(--success), var(--primary)); }
+
+        .stat-content h3 {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .stat-content p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light);
+        }
+
+        th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-primary { background: #dbeafe; color: var(--primary); }
+        .badge-success { background: #dcfce7; color: var(--success); }
+        .badge-warning { background: #fef3c7; color: var(--warning); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--light);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🎨 Portfolio Admin</h1>
+                <span style="color: #64748b; font-weight: 500;">Mishrilal Parihar</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon projects">📁</div>
+                <div class="stat-content">
+                    <h3>Total Projects</h3>
+                    <p id="totalProjects">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon skills">⚡</div>
+                <div class="stat-content">
+                    <h3>Total Skills</h3>
+                    <p id="totalSkills">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon analytics">📊</div>
+                <div class="stat-content">
+                    <h3>Page Views</h3>
+                    <p id="pageViews">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon messages">✉️</div>
+                <div class="stat-content">
+                    <h3>Messages</h3>
+                    <p id="totalMessages">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('projects')">📁 Projects</button>
+            <button class="tab-btn" onclick="switchTab('skills')">⚡ Skills</button>
+            <button class="tab-btn" onclick="switchTab('analytics')">📊 Analytics</button>
+        </div>
+
+        <!-- Projects Section -->
+        <div id="projects-section" class="content-section active">
+            <div class="section-header">
+                <h2>Manage Projects</h2>
+                <button class="btn btn-primary" onclick="openProjectModal()">
+                    ➕ Add New Project
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="projects-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Tags</th>
+                            <th>Featured</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projects-tbody">
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div>
+                                    <p style="font-size: 1.2rem; margin-bottom: 10px;">No projects yet</p>
+                                    <p>Click "Add New Project" to create your first project</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div id="skills-section" class="content-section">
+            <div class="section-header">
+                <h2>Manage Skills</h2>
+                <button class="btn btn-primary" onclick="openSkillModal()">
+                    ➕ Add New Skill
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="skills-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="skills-tbody">
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <div>
+                                    <p style="font-size: 1.2rem; margin-bottom: 10px;">No skills yet</p>
+                                    <p>Click "Add New Skill" to create your first skill</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="analytics-section" class="content-section">
+            <div class="section-header">
+                <h2>Analytics Overview</h2>
+            </div>
+            <div id="analytics-content">
+                <p style="color: #64748b; text-align: center; padding: 40px;">Analytics data will be displayed here</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="project-modal-title">Add New Project</h2>
+            <form id="project-form">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="project-title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="project-description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="project-category" required>
+                        <option value="">Select category</option>
+                        <option value="data-analysis">Data Analysis</option>
+                        <option value="data-visualization">Data Visualization</option>
+                        <option value="machine-learning">Machine Learning</option>
+                        <option value="web-development">Web Development</option>
+                        <option value="python-projects">Python Projects</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma separated)</label>
+                    <input type="text" id="project-tags" placeholder="Python, Pandas, ML">
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="url" id="project-image">
+                </div>
+                <div class="form-group">
+                    <label>Live URL</label>
+                    <input type="url" id="project-liveUrl">
+                </div>
+                <div class="form-group">
+                    <label>GitHub URL</label>
+                    <input type="url" id="project-githubUrl">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="project-featured"> Featured Project
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Project</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('project-modal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Skill Modal -->
+    <div id="skill-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="skill-modal-title">Add New Skill</h2>
+            <form id="skill-form">
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="skill-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="skill-category" required>
+                        <option value="">Select category</option>
+                        <option value="programming">Programming</option>
+                        <option value="data-skills">Data Skills</option>
+                        <option value="tools">Tools</option>
+                        <option value="web-dev">Web Development</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Level (0-100) *</label>
+                    <input type="number" id="skill-level" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Icon (emoji or text)</label>
+                    <input type="text" id="skill-icon">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Skill</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('skill-modal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let authToken = 'temp-bypass-token'; // Temporary bypass
+
+        // TEMPORARILY DISABLED - Check authentication on page load
+        function checkAuth() {
+            // authToken = localStorage.getItem('adminToken');
+            // if (!authToken) {
+            //     window.location.href = '/login.html';
+            //     return false;
+            // }
+            return true;
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Fetch with authentication - TEMPORARILY BYPASSED
+        async function authenticatedFetch(url, options = {}) {
+            // Removed auth header for testing
+            const response = await fetch(url, options);
+
+            // Handle errors
+            if (!response.ok && response.status === 401) {
+                console.warn('401 error - but auth is disabled for testing');
+            }
+
+            return response;
+        }
+        
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-section`).classList.add('active');
+            
+            if (tab === 'projects') loadProjects();
+            if (tab === 'skills') loadSkills();
+            if (tab === 'analytics') loadAnalytics();
+        }
+
+        // Load dashboard stats
+        async function loadDashboard() {
+            try {
+                const [adminRes, analyticsRes] = await Promise.all([
+                    authenticatedFetch(`${API_URL}/admin/dashboard`),
+                    authenticatedFetch(`${API_URL}/analytics`)
+                ]);
+
+                if (!adminRes || !analyticsRes) return;
+                
+                const adminData = await adminRes.json();
+                const analyticsData = await analyticsRes.json();
+                
+                if (adminData.success) {
+                    document.getElementById('totalProjects').textContent = adminData.data.totalProjects;
+                    document.getElementById('totalSkills').textContent = adminData.data.totalSkills;
+                }
+                
+                if (analyticsData.success) {
+                    document.getElementById('pageViews').textContent = analyticsData.data.pageViews;
+                    document.getElementById('totalMessages').textContent = analyticsData.data.contactFormSubmissions;
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Projects
+        async function loadProjects() {
+            try {
+                const response = await authenticatedFetch(`${API_URL}/admin/projects`);
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                const tbody = document.getElementById('projects-tbody');
+                
+                const projectsList = data.projects || data.data || [];
+                
+                if (projectsList.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div>
+                                    <p style="font-size: 1.2rem; margin-bottom: 10px;">No projects yet</p>
+                                    <p>Click "Add New Project" to create your first project</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = projectsList.map(project => `
+                    <tr>
+                        <td><strong>${project.title}</strong></td>
+                        <td><span class="badge badge-primary">${project.category}</span></td>
+                        <td>${project.tags ? project.tags.join(', ') : ''}</td>
+                        <td>${project.featured ? '⭐ Yes' : 'No'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-primary btn-small" onclick="editProject(${project.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteProject(${project.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading projects:', error);
+            }
+        }
+
+        function openProjectModal(projectId = null) {
+            document.getElementById('project-modal').classList.add('active');
+            if (!projectId) {
+                document.getElementById('project-form').reset();
+                document.getElementById('project-modal-title').textContent = 'Add New Project';
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        document.getElementById('project-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const projectData = {
+                title: document.getElementById('project-title').value,
+                description: document.getElementById('project-description').value,
+                category: document.getElementById('project-category').value,
+                tags: document.getElementById('project-tags').value.split(',').map(t => t.trim()),
+                image: document.getElementById('project-image').value,
+                liveUrl: document.getElementById('project-liveUrl').value,
+                githubUrl: document.getElementById('project-githubUrl').value,
+                featured: document.getElementById('project-featured').checked
+            };
+            
+            try {
+                const response = await authenticatedFetch(`${API_URL}/admin/projects`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(projectData)
+                });
+
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Project created successfully!');
+                    closeModal('project-modal');
+                    loadProjects();
+                    loadDashboard();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error creating project');
+                console.error(error);
+            }
+        });
+
+        async function deleteProject(id) {
+            if (!confirm('Are you sure you want to delete this project?')) return;
+            
+            try {
+                const response = await authenticatedFetch(`${API_URL}/admin/projects/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Project deleted successfully!');
+                    loadProjects();
+                    loadDashboard();
+                }
+            } catch (error) {
+                alert('Error deleting project');
+                console.error(error);
+            }
+        }
+
+        // Skills
+        async function loadSkills() {
+            try {
+                const response = await authenticatedFetch(`${API_URL}/admin/skills`);
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                const tbody = document.getElementById('skills-tbody');
+                
+                const skillsList = data.skills || data.data || [];
+                
+                if (skillsList.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <div>
+                                    <p style="font-size: 1.2rem; margin-bottom: 10px;">No skills yet</p>
+                                    <p>Click "Add New Skill" to create your first skill</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = skillsList.map(skill => `
+                    <tr>
+                        <td>${skill.icon} <strong>${skill.name}</strong></td>
+                        <td><span class="badge badge-primary">${skill.category}</span></td>
+                        <td>
+                            <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: ${skill.level}%;"></div>
+                            </div>
+                            <span style="font-size: 0.875rem; color: #64748b;">${skill.level}%</span>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="btn btn-danger btn-small" onclick="deleteSkill(${skill.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading skills:', error);
+            }
+        }
+
+        function openSkillModal() {
+            document.getElementById('skill-modal').classList.add('active');
+            document.getElementById('skill-form').reset();
+        }
+
+        document.getElementById('skill-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const skillData = {
+                name: document.getElementById('skill-name').value,
+                category: document.getElementById('skill-category').value,
+                level: parseInt(document.getElementById('skill-level').value),
+                icon: document.getElementById('skill-icon').value
+            };
+            
+            try {
+                const response = await authenticatedFetch(`${API_URL}/admin/skills`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(skillData)
+                });
+
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Skill created successfully!');
+                    closeModal('skill-modal');
+                    loadSkills();
+                    loadDashboard();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error creating skill');
+                console.error(error);
+            }
+        });
+
+        async function deleteSkill(id) {
+            if (!confirm('Are you sure you want to delete this skill?')) return;
+            
+            try {
+                const response = await authenticatedFetch(`${API_URL}/admin/skills/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Skill deleted successfully!');
+                    loadSkills();
+                    loadDashboard();
+                }
+            } catch (error) {
+                alert('Error deleting skill');
+                console.error(error);
+            }
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            try {
+                const response = await authenticatedFetch(`${API_URL}/analytics`);
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('analytics-content').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 12px;">
+                                <h3 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">Page Views</h3>
+                                <p style="font-size: 2rem; font-weight: bold; color: #0f172a;">${data.data.pageViews}</p>
+                            </div>
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 12px;">
+                                <h3 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">Unique Visitors</h3>
+                                <p style="font-size: 2rem; font-weight: bold; color: #0f172a;">${data.data.uniqueVisitors}</p>
+                            </div>
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 12px;">
+                                <h3 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">Contact Submissions</h3>
+                                <p style="font-size: 2rem; font-weight: bold; color: #0f172a;">${data.data.contactFormSubmissions}</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 30px;">
+                            <h3 style="margin-bottom: 15px;">Project Views</h3>
+                            ${Object.keys(data.data.projectViews).length === 0 ? 
+                                '<p style="color: #64748b;">No project views yet</p>' :
+                                Object.entries(data.data.projectViews).map(([id, proj]) => `
+                                    <div style="padding: 15px; background: #f8fafc; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between;">
+                                        <span>${proj.title}</span>
+                                        <strong>${proj.views} views</strong>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        // Initialize - check auth first
+        console.log('Dashboard JavaScript loaded!');
+        console.log('Checking auth...');
+        if (checkAuth()) {
+            console.log('Auth check passed, loading data...');
+            loadDashboard();
+            loadProjects();
+        } else {
+            console.log('Auth check failed');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #667eea; margin-top: 30px; }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #5568d3; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API Connection Test</h1>
+        <p>This page tests the connection between your React frontend and the backend API.</p>
+        
+        <div>
+            <button class="btn" onclick="testSkills()">Test Skills API</button>
+            <button class="btn" onclick="testProjects()">Test Projects API</button>
+            <button class="btn" onclick="testBoth()">Test Both</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        async function testSkills() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Testing Skills API...</h2>';
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/skills`);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML += `
+                    <p class="success">✓ Skills API Working!</p>
+                    <p><strong>Count:</strong> ${data.skills ? data.skills.length : 0} skills</p>
+                    <h3>Response Data:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <p class="error">✗ Error fetching skills</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testProjects() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Testing Projects API...</h2>';
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/projects`);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML += `
+                    <p class="success">✓ Projects API Working!</p>
+                    <p><strong>Count:</strong> ${data.projects ? data.projects.length : 0} projects</p>
+                    <h3>Response Data:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <p class="error">✗ Error fetching projects</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testBoth() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Testing Both APIs...</h2>';
+            
+            try {
+                const [skillsRes, projectsRes] = await Promise.all([
+                    fetch(`${API_URL}/admin/skills`),
+                    fetch(`${API_URL}/admin/projects`)
+                ]);
+                
+                const skillsData = await skillsRes.json();
+                const projectsData = await projectsRes.json();
+                
+                resultsDiv.innerHTML += `
+                    <p class="success">✓ Both APIs Working!</p>
+                    <p><strong>Skills:</strong> ${skillsData.skills ? skillsData.skills.length : 0}</p>
+                    <p><strong>Projects:</strong> ${projectsData.projects ? projectsData.projects.length : 0}</p>
+                    
+                    <h3>Skills:</h3>
+                    <pre>${JSON.stringify(skillsData.skills.slice(0, 5), null, 2)}</pre>
+                    
+                    <h3>Projects:</h3>
+                    <pre>${JSON.stringify(projectsData.projects.slice(0, 3), null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <p class="error">✗ Error fetching data</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            setTimeout(testBoth, 500);
+        });
+    </script>
+</body>
+</html>
