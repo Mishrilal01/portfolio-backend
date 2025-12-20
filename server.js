@@ -10,13 +10,13 @@ dotenv.config();
 
 // Import routes
 const contactRoutes = require('./routes/contact');
-const analyticsRoutes = require('./routes/analytics');
-const healthRoutes = require('./routes/health');
-const adminRoutes = require('./routes/admin');
-const authRoutes = require('./routes/auth');
+// const analyticsRoutes = require('./routes/analytics');
+// const healthRoutes = require('./routes/health');
+// const adminRoutes = require('./routes/admin');
+// const authRoutes = require('./routes/auth');
 
 // Import middleware
-const authMiddleware = require('./middleware/auth');
+// const authMiddleware = require('./middleware/auth');
 
 // Initialize Express app
 const app = express();
@@ -52,11 +52,11 @@ const contactLimiter = rateLimit({
 });
 
 // Routes
-app.use('/api/health', healthRoutes);
+// app.use('/api/health', healthRoutes);
 app.use('/api/contact', contactRoutes); // Rate limiter temporarily removed
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', authMiddleware, adminRoutes); // AUTH ENABLED
+// app.use('/api/analytics', analyticsRoutes);
+// app.use('/api/auth', authRoutes);
+// app.use('/api/admin', authMiddleware, adminRoutes); // AUTH ENABLED
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -64,12 +64,8 @@ app.get('/', (req, res) => {
     message: 'Portfolio Backend API',
     version: '1.0.0',
     author: 'Mishrilal Parihar',
-    adminDashboard: '/admin.html',
     endpoints: {
-      health: '/api/health',
-      contact: '/api/contact',
-      analytics: '/api/analytics',
-      admin: '/api/admin'
+      contact: '/api/contact'
     }
   });
 });
