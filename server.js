@@ -30,12 +30,15 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.static('public')); // Serve static files from public directory
 
-// CORS Configuration - Allow all origins in development
+// CORS Configuration - Production ready
 const corsOptions = {
-  origin: '*',
+  origin: [
+    'https://mishrilal-portfolio.vercel.app',
+    'http://localhost:3000' // Keep for local development
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  credentials: true
 };
 app.use(cors(corsOptions));
 
@@ -96,7 +99,7 @@ app.listen(PORT, () => {
   ║   Portfolio Backend Server Running     ║
   ║   Port: ${PORT}                           ║
   ║   Environment: ${process.env.NODE_ENV || 'development'}              ║
-  ║   Frontend: ${process.env.FRONTEND_URL || 'http://localhost:3000'}        ║
+  ║   Frontend: ${process.env.FRONTEND_URL || 'https://mishrilal-portfolio.vercel.app'}        ║
   ╚════════════════════════════════════════╝
   `);
 });
