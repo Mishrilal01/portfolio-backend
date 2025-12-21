@@ -34,6 +34,7 @@ app.use(express.static('public')); // Serve static files from public directory
 const corsOptions = {
   origin: [
     'https://mishrilal-portfolio.vercel.app',
+    'https://mishrilal1112-portfolio.vercel.app', // Actual deployed URL
     'http://localhost:3000' // Keep for local development
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
