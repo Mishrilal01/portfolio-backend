@@ -11,6 +11,17 @@ const contactSchema = Joi.object({
   message: Joi.string().min(10).max(2000).required()
 });
 
+// Log all environment variables for debugging
+console.log('====== SMTP Configuration ======');
+console.log('SMTP_HOST =>', process.env.SMTP_HOST);
+console.log('SMTP_PORT =>', process.env.SMTP_PORT);
+console.log('SMTP_USER =>', process.env.SMTP_USER);
+console.log('SMTP_PASSWORD =>', process.env.SMTP_PASSWORD ? '***SET***' : 'NOT SET');
+console.log('EMAIL_FROM =>', process.env.EMAIL_FROM);
+console.log('RECIPIENT_EMAIL =>', process.env.RECIPIENT_EMAIL);
+console.log('NODE_ENV =>', process.env.NODE_ENV);
+console.log('================================');
+
 // Configure email transporter - Using Brevo (Sendinblue) for Render compatibility
 // Gmail SMTP (port 587) is blocked on Render's free tier
 const transporter = nodemailer.createTransport({
