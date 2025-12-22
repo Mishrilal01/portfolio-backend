@@ -25,7 +25,21 @@ const app = express();
 app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP to allow inline scripts
 })); // Security headers
-app.use(morgan('combined')); // Logging
+
+// Strapi-style Morgan logging
+morgan.token('status-color', (req, res) => {
+  const status = res.statusCode;
+  const color = status >= 500 ? '\x1b[31m' : // red
+               status >= 400 ? '\x1b[33m' : // yellow
+               status >= 300 ? '\x1b[36m' : // cyan
+               status >= 200 ? '\x1b[32m' : // green
+               '\x1b[0m'; // default
+  return color + status + '\x1b[0m';
+});
+
+const strapiFormat = '[:date[iso]] \x1b[36m:method\x1b[0m :url :status-color :response-time ms - :res[content-length]';
+app.use(morgan(strapiFormat)); // Strapi-style logging
+
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.static('public')); // Serve static files from public directory
@@ -101,7 +115,7 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('[' + new Date().toISOString() + '] \x1b[31m[error]\x1b[0m', err.message);
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
@@ -111,14 +125,12 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`
-  ╔════════════════════════════════════════╗
-  ║   Portfolio Backend Server Running     ║
-  ║   Port: ${PORT}                           ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}              ║
-  ║   Frontend: ${process.env.FRONTEND_URL || 'https://mishrilal1112-portfolio.vercel.app'}        ║
-  ╚════════════════════════════════════════╝
-  `);
+  const timestamp = new Date().toISOString();
+  console.log(`\n[${timestamp}] \x1b[32m[info]\x1b[0m Server started successfully`);
+  console.log(`[${timestamp}] \x1b[36m[info]\x1b[0m Port: ${PORT}`);
+  console.log(`[${timestamp}] \x1b[36m[info]\x1b[0m Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[${timestamp}] \x1b[36m[info]\x1b[0m Frontend URL: ${process.env.FRONTEND_URL || 'https://mishrilal1112-portfolio.vercel.app'}`);
+  console.log(`[${timestamp}] \x1b[32m[info]\x1b[0m ✓ Server ready at http://localhost:${PORT}\n`);
 });
 
 module.exports = app;
