@@ -11,44 +11,23 @@ const contactSchema = Joi.object({
   message: Joi.string().min(10).max(2000).required()
 });
 
-// Log all environment variables for debugging
-console.log('====== SMTP Configuration ======');
-console.log('SMTP_HOST =>', process.env.SMTP_HOST);
-console.log('SMTP_PORT =>', process.env.SMTP_PORT);
-console.log('SMTP_USER =>', process.env.SMTP_USER);
-console.log('SMTP_PASSWORD =>', process.env.SMTP_PASSWORD ? '***SET***' : 'NOT SET');
-console.log('EMAIL_FROM =>', process.env.EMAIL_FROM);
-console.log('RECIPIENT_EMAIL =>', process.env.RECIPIENT_EMAIL);
-console.log('NODE_ENV =>', process.env.NODE_ENV);
-console.log('================================');
-
-// Configure email transporter - Using Brevo (Sendinblue) for Render compatibility
-// Gmail SMTP (port 587) is blocked on Render's free tier
+// Configure email transporter
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-  port: parseInt(process.env.SMTP_PORT) || 587,
-  secure: false, // Use TLS
+  service: 'gmail',
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD
-  },
-  // Additional options for better reliability
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000,
-  socketTimeout: 10000
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
 });
 
-// Skip verification on startup to prevent deployment failures
-// Verification will happen when actually sending emails
-if (process.env.NODE_ENV === 'development') {
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error('⚠️  Email configuration warning:', error.message);
-    } else {
-      console.log('✓ Email server is ready to send messages');
-    }
-  });
-}
+// Verify transporter configuration
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('Email configuration error:', error);
+  } else {
+    console.log('✓ Email server is ready to send messages');
+  }
+});
 router.get('/', (req, res) => {
   res.json({
     message: 'Contact API is working',  
@@ -71,7 +50,7 @@ router.post('/', async (req, res) => {
 
     // Email to portfolio owner
     const mailOptions = {
-      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      from: process.env.EMAIL_USER,
       to: process.env.RECIPIENT_EMAIL,
       subject: `Portfolio Contact: ${subject}`,
       html: `
@@ -136,7 +115,7 @@ Received: ${new Date().toLocaleString()}
 
     // Auto-reply to sender
     const autoReplyOptions = {
-      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      from: process.env.EMAIL_USER,
       to: email,
       subject: 'Thank you for contacting me! - Mishrilal Parihar',
       html: `
@@ -202,12 +181,10 @@ Received: ${new Date().toLocaleString()}
     
     let errorMessage = 'An error occurred while sending your message. Please try again later.';
     
-    if (error.code === 'ESOCKET' || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
-      errorMessage = 'Email service connection failed. Please try again.';
-      console.error('SMTP Connection Error:', error.code);
-    } else if (error.responseCode === 535 || error.code === 'EAUTH') {
-      errorMessage = 'Email authentication failed. Please contact support.';
-      console.error('SMTP Auth Error:', error.message);
+    if (error.code === 'ESOCKET' || error.code === 'ECONNRESET') {
+      errorMessage = 'Email service connection failed. Please check your email configuration.';
+    } else if (error.responseCode === 535) {
+      errorMessage = 'Email authentication failed. Please check EMAIL_USER and EMAIL_PASSWORD in .env file.';
     }
     
     res.status(500).json({
