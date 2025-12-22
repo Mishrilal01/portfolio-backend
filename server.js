@@ -30,18 +30,38 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.static('public')); // Serve static files from public directory
 
-// CORS Configuration - Production ready
+// CORS Configuration - Production ready with dynamic origin
+const allowedOrigins = [
+  'https://mishrilal1112-portfolio.vercel.app',
+  'https://mishrilal-portfolio.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.FRONTEND_URL
+].filter(Boolean); // Remove undefined values
+
 const corsOptions = {
-  origin: [
-    //'https://mishrilal-portfolio.vercel.app',
-    'https://mishrilal1112-portfolio.vercel.app', // Actual deployed URL
-    'http://localhost:3000' // Keep for local development
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
+
 app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // Rate limiting for contact form
 const contactLimiter = rateLimit({
