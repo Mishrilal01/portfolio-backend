@@ -10,13 +10,13 @@ dotenv.config();
 
 // Import routes
 const contactRoutes = require('./routes/contact');
-// const analyticsRoutes = require('./routes/analytics');
-// const healthRoutes = require('./routes/health');
-// const adminRoutes = require('./routes/admin');
-// const authRoutes = require('./routes/auth');
+const healthRoutes = require('./routes/health');
+const analyticsRoutes = require('./routes/analytics');
+const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 
 // Import middleware
-// const authMiddleware = require('./middleware/auth');
+const authMiddleware = require('./middleware/auth');
 
 // Initialize Express app
 const app = express();
@@ -80,18 +80,18 @@ app.options('*', cors(corsOptions));
 // Rate limiting for contact form
 const contactLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // increased to 100 for testing
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5, // 5 requests per window
   message: 'Too many contact form submissions, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Routes
-// app.use('/api/health', healthRoutes);
-app.use('/api/contact', contactRoutes); // Rate limiter temporarily removed
-// app.use('/api/analytics', analyticsRoutes);
-// app.use('/api/auth', authRoutes);
-// app.use('/api/admin', authMiddleware, adminRoutes); // AUTH ENABLED
+app.use('/api/health', healthRoutes);
+app.use('/api/contact', contactLimiter, contactRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', authMiddleware, adminRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -100,8 +100,13 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     author: 'Mishrilal Parihar',
     endpoints: {
-      contact: '/api/contact'
-    }
+      health: '/api/health',
+      contact: '/api/contact',
+      analytics: '/api/analytics',
+      auth: '/api/auth',
+      admin: '/api/admin (requires authentication)'
+    },
+    note: 'Email service handled by EmailJS on frontend'
   });
 });
 
