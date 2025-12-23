@@ -47,6 +47,7 @@ app.use(express.static('public')); // Serve static files from public directory
 // CORS Configuration - Production ready with dynamic origin
 const allowedOrigins = [
   'https://mishrilal1112-portfolio.vercel.app',
+  
   'https://mishrilal-portfolio.vercel.app',
   'http://localhost:3000',
   'http://localhost:5000',
