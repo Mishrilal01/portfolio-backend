@@ -4,6 +4,24 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // Login endpoint
+
+router.get('/', (req, res) => {
+  res.json({
+    message: 'Auth API is running'
+  });
+});
+
+// GET /login - Return login information
+router.get('/login', (req, res) => {
+  res.json({
+    message: 'Login endpoint',
+    method: 'POST',
+    endpoint: '/api/auth/login',
+    requiredFields: ['username', 'password'],
+    note: 'Please use POST method to login'
+  });
+});
+
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;

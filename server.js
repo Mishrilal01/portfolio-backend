@@ -49,6 +49,7 @@ const allowedOrigins = [
   'https://mishrilal1112-portfolio.vercel.app',
   'https://mishrilal-portfolio.vercel.app',
   'http://localhost:3000',
+  'http://localhost:5000',
   'http://localhost:5173',
   process.env.FRONTEND_URL
 ].filter(Boolean); // Remove undefined values
@@ -94,21 +95,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
 
 // Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Portfolio Backend API',
-    version: '1.0.0',
-    author: 'Mishrilal Parihar',
-    endpoints: {
-      health: '/api/health',
-      contact: '/api/contact',
-      analytics: '/api/analytics',
-      auth: '/api/auth',
-      admin: '/api/admin (requires authentication)'
-    },
-    note: 'Email service handled by EmailJS on frontend'
-  });
-});
+app.use(express.static('public'));
 
 // 404 handler
 app.use((req, res) => {
