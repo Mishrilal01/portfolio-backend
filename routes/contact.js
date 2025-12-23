@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 // Validation schema
 const contactSchema = Joi.object({
@@ -11,44 +11,28 @@ const contactSchema = Joi.object({
   message: Joi.string().min(10).max(2000).required()
 });
 
-// Configure Gmail SMTP transporter with proper settings
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Use STARTTLS
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  // Connection pooling
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 10,
-  // Timeouts
-  connectionTimeout: 60000, // 60 seconds
-  greetingTimeout: 30000,
-  socketTimeout: 60000
-});
+// Brevo API configuration - Production-grade HTTP API (No SMTP timeouts)
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
-// Verify transporter configuration (only in development)
-if (process.env.NODE_ENV === 'development') {
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error('⚠️ Email configuration error:', error.message);
-    } else {
-      console.log('✓ Email server is ready to send messages');
-    }
-  });
+// Verify Brevo API key on startup
+if (!BREVO_API_KEY) {
+  console.error('⚠️ BREVO_API_KEY not found in environment variables');
+  console.error('⚠️ Email service will not work until BREVO_API_KEY is configured');
+} else {
+  console.log('✅ Brevo Email API configured and ready');
 }
+
+// Health check route
 router.get('/', (req, res) => {
   res.json({
-    message: 'Contact API is working',  
-    version: '1.0.0'}); });
+    message: 'Contact API is working',
+    version: '2.0.0',
+    method: 'Brevo HTTP API (No SMTP)'
+  });
+});
 
-// POST /api/contact - Send contact form email
+// POST /api/contact - Send contact form email via Brevo HTTP API
 router.post('/', async (req, res) => {
   try {
     // Validate request body
@@ -63,12 +47,34 @@ router.post('/', async (req, res) => {
 
     const { name, email, subject, message } = value;
 
+    // Check if API key is configured
+    if (!BREVO_API_KEY) {
+      console.error('❌ BREVO_API_KEY is not configured');
+      return res.status(500).json({
+        success: false,
+        error: 'Email service not configured',
+        message: 'The email service is currently unavailable. Please try again later.'
+      });
+    }
+
     // Email to portfolio owner
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.RECIPIENT_EMAIL,
+    const ownerEmailPayload = {
+      sender: {
+        name: 'Portfolio Contact Form',
+        email: process.env.EMAIL_USER || 'noreply@portfolio.com'
+      },
+      to: [
+        {
+          email: process.env.RECIPIENT_EMAIL,
+          name: 'Mishrilal Parihar'
+        }
+      ],
+      replyTo: {
+        email: email,
+        name: name
+      },
       subject: `Portfolio Contact: ${subject}`,
-      html: `
+      htmlContent: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -106,34 +112,29 @@ router.post('/', async (req, res) => {
                 <div class="value">${message.replace(/\n/g, '<br>')}</div>
               </div>
               <div class="footer">
-                <p>Received from Mishrilal Parihar's Portfolio | ${new Date().toLocaleString()}</p>
+                <p>Received: ${new Date().toLocaleString()}</p>
               </div>
             </div>
           </div>
         </body>
         </html>
-      `,
-      text: `
-New Contact Form Submission
-
-From: ${name}
-Email: ${email}
-Subject: ${subject}
-
-Message:
-${message}
-
----
-Received: ${new Date().toLocaleString()}
       `
     };
 
     // Auto-reply to sender
-    const autoReplyOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
+    const autoReplyPayload = {
+      sender: {
+        name: 'Mishrilal Parihar',
+        email: process.env.EMAIL_USER || 'noreply@portfolio.com'
+      },
+      to: [
+        {
+          email: email,
+          name: name
+        }
+      ],
       subject: 'Thank you for contacting me! - Mishrilal Parihar',
-      html: `
+      htmlContent: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -179,30 +180,77 @@ Received: ${new Date().toLocaleString()}
       `
     };
 
-    // Send both emails
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(autoReplyOptions);
+    // Send both emails via Brevo HTTP API with proper timeout (fail fast)
+    const axiosConfig = {
+      headers: {
+        'accept': 'application/json',
+        'api-key': BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      timeout: 10000 // 10 seconds timeout - fail fast, no 60s hangs
+    };
 
-    // Log success
-    console.log(`✓ Contact form submission from ${name} (${email})`);
+    console.log(`📧 Sending email from ${name} (${email})...`);
 
+    // Send email to portfolio owner
+    const ownerEmailResponse = await axios.post(BREVO_API_URL, ownerEmailPayload, axiosConfig);
+    
+    if (ownerEmailResponse.status !== 201) {
+      throw new Error(`Failed to send owner email: ${ownerEmailResponse.status}`);
+    }
+
+    console.log(`✅ Owner email sent - Message ID: ${ownerEmailResponse.data.messageId}`);
+
+    // Send auto-reply to sender (non-critical)
+    try {
+      const autoReplyResponse = await axios.post(BREVO_API_URL, autoReplyPayload, axiosConfig);
+      
+      if (autoReplyResponse.status === 201) {
+        console.log(`✅ Auto-reply sent - Message ID: ${autoReplyResponse.data.messageId}`);
+      }
+    } catch (autoReplyError) {
+      // Auto-reply failure is non-critical
+      console.warn('⚠️ Auto-reply failed but owner email sent successfully');
+      console.warn('⚠️', autoReplyError.message);
+    }
+
+    // Success response
     res.status(200).json({
       success: true,
       message: 'Message sent successfully! You will receive a confirmation email shortly.'
     });
 
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('❌ Contact form error:', error.message);
     
     let errorMessage = 'An error occurred while sending your message. Please try again later.';
+    let statusCode = 500;
     
-    if (error.code === 'ESOCKET' || error.code === 'ECONNRESET') {
-      errorMessage = 'Email service connection failed. Please check your email configuration.';
-    } else if (error.responseCode === 535) {
-      errorMessage = 'Email authentication failed. Please check EMAIL_USER and EMAIL_PASSWORD in .env file.';
+    if (error.code === 'ECONNABORTED') {
+      errorMessage = 'Email service timeout. Please try again.';
+      console.error('❌ Brevo API timeout (10s)');
+    } else if (error.response) {
+      // Brevo API error response
+      console.error('❌ Brevo API Error:', error.response.status, error.response.data);
+      
+      if (error.response.status === 401) {
+        errorMessage = 'Email service authentication failed.';
+        console.error('❌ Invalid BREVO_API_KEY - Please check your API key');
+      } else if (error.response.status === 400) {
+        errorMessage = 'Invalid email request. Please check your input.';
+        console.error('❌ Bad request to Brevo API');
+      } else if (error.response.status === 429) {
+        errorMessage = 'Too many requests. Please try again in a few minutes.';
+        console.error('❌ Brevo API rate limit exceeded');
+      }
+      
+      statusCode = error.response.status;
+    } else if (error.request) {
+      console.error('❌ No response from Brevo API');
+      errorMessage = 'Email service unavailable. Please try again later.';
     }
     
-    res.status(500).json({
+    res.status(statusCode).json({
       success: false,
       error: 'Failed to send message',
       message: errorMessage,

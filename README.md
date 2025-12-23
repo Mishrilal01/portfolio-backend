@@ -5,18 +5,19 @@ Backend server for Mishrilal Parihar's portfolio website with contact form, emai
 ## 🚀 Features
 
 - **Contact Form API**: Handle contact form submissions with email notifications
-- **Email Service**: Automatic email responses using Nodemailer
+- **Email Service**: Production-grade **Brevo HTTP API** (no SMTP timeouts)
 - **Analytics Tracking**: Track page views, project views, and form submissions
 - **🔐 Admin Dashboard**: Manage projects and skills with secure JWT authentication
 - **🔒 Authentication**: JWT-based authentication for protected routes
 - **Security**: Helmet.js, CORS, rate limiting, bcrypt password hashing
 - **Input Validation**: Joi schema validation
 - **Error Handling**: Comprehensive error handling and logging
+- **Cloud-Native**: Optimized for Render, Vercel, Railway, etc.
 
 ## 📋 Prerequisites
 
 - Node.js (v14 or higher)
-- Gmail account for sending emails
+- Brevo account (free tier available)
 - npm or yarn
 
 ## ⚙️ Setup Instructions
@@ -42,9 +43,11 @@ Edit `.env` with your configuration:
 PORT=5000
 NODE_ENV=development
 
+# Brevo Email API (Production-grade, no SMTP timeouts)
+BREVO_API_KEY=xkeysib-your-actual-api-key-here
+
 # Email Configuration
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-specific-password
+EMAIL_USER=mishrilalparihar30221@gmail.com
 RECIPIENT_EMAIL=mishrilalparihar30221@gmail.com
 
 # CORS
@@ -62,13 +65,15 @@ JWT_SECRET=your-secret-key-change-this-in-production
 
 > ⚠️ **IMPORTANT**: Change `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `JWT_SECRET` before deploying to production!
 
-### 3. Gmail App Password Setup
+### 3. Get Brevo API Key
 
-1. Go to your Google Account settings
-2. Navigate to Security > 2-Step Verification
-3. Scroll down to "App passwords"
-4. Generate a new app password for "Mail"
-5. Copy the 16-character password to `EMAIL_PASSWORD` in `.env`
+1. Sign up at [Brevo](https://app.brevo.com) (free tier available)
+2. Navigate to: **Settings** → **SMTP & API** → **API Keys**
+3. Click **Generate a new API key**
+4. Copy the API key (starts with `xkeysib-...`)
+5. Add to `BREVO_API_KEY` in `.env`
+
+📖 **Full Deployment Guide**: See [BREVO_DEPLOYMENT_GUIDE.md](./BREVO_DEPLOYMENT_GUIDE.md)
 
 ### 4. Run the Server
 
