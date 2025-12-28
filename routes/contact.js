@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
+const axios = require('axios');
 
 // Validation schema
 const contactSchema = Joi.object({
@@ -8,6 +9,11 @@ const contactSchema = Joi.object({
   email: Joi.string().email().required(),
   subject: Joi.string().min(3).max(200).optional(),
   message: Joi.string().min(10).max(2000).required()
+});
+
+// Email verification schema
+const emailVerifySchema = Joi.object({
+  email: Joi.string().email().required()
 });
 
 // In-memory storage for contact messages (use database in production)
@@ -21,6 +27,103 @@ router.get('/', (req, res) => {
     version: '3.0.0',
     note: 'Email handling is done via EmailJS on frontend'
   });
+});
+
+// POST /api/contact/verify-email - Verify if email exists (free method)
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { error, value } = emailVerifySchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    const { email } = value;
+
+    // Basic validation checks
+    const emailLower = email.toLowerCase();
+    
+    // 1. Check for common disposable email domains
+    const disposableDomains = [
+      'tempmail.com', 'guerrillamail.com', '10minutemail.com', 
+      'throwaway.email', 'mailinator.com', 'trashmail.com',
+      'temp-mail.org', 'fakeinbox.com', 'yopmail.com'
+    ];
+    
+    const domain = emailLower.split('@')[1];
+    if (disposableDomains.includes(domain)) {
+      return res.json({
+        success: true,
+        valid: false,
+        message: 'Disposable email addresses are not allowed',
+        reason: 'disposable'
+      });
+    }
+
+    // 2. Check for common typos in popular domains
+    const commonDomains = {
+      'gmail.com': ['gmai.com', 'gmial.com', 'gamil.com', 'gmal.com'],
+      'yahoo.com': ['yaho.com', 'yahooo.com', 'yhoo.com'],
+      'hotmail.com': ['hotmal.com', 'hotmial.com', 'hotmali.com'],
+      'outlook.com': ['outlok.com', 'outloo.com']
+    };
+
+    for (const [correct, typos] of Object.entries(commonDomains)) {
+      if (typos.includes(domain)) {
+        return res.json({
+          success: true,
+          valid: false,
+          message: `Did you mean ${emailLower.replace(domain, correct)}?`,
+          suggestion: emailLower.replace(domain, correct),
+          reason: 'typo'
+        });
+      }
+    }
+
+    // 3. Check if domain has MX records (DNS validation) - Best free option
+    try {
+      const dns = require('dns').promises;
+      const mxRecords = await dns.resolveMx(domain);
+      
+      if (!mxRecords || mxRecords.length === 0) {
+        return res.json({
+          success: true,
+          valid: false,
+          message: 'Email domain does not exist or cannot receive emails',
+          reason: 'no-mx-records'
+        });
+      }
+
+      // Email passes all checks
+      return res.json({
+        success: true,
+        valid: true,
+        message: 'Email appears to be valid',
+        domain: domain
+      });
+
+    } catch (dnsError) {
+      // DNS lookup failed - domain doesn't exist
+      return res.json({
+        success: true,
+        valid: false,
+        message: 'Email domain does not exist',
+        reason: 'invalid-domain'
+      });
+    }
+
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(500).json({
+      success: false,
+      valid: false,
+      message: 'Verification failed',
+      error: error.message
+    });
+  }
 });
 
 // POST /api/contact - Store contact form submission
